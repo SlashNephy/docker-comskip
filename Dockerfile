@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine:3.16.2
 
 ARG ARGTABLE_VERSION=2-13
 RUN apk add --update --no-cache --virtual .build-deps \
@@ -18,7 +18,7 @@ RUN apk add --update --no-cache --virtual .build-deps \
     # Build: argtable
     && mkdir /tmp/argtable \
     && cd /tmp/argtable \
-    && curl -sLO http://prdownloads.sourceforge.net/argtable/argtable${ARGTABLE_VERSION}.tar.gz \
+    && curl -sLO https://prdownloads.sourceforge.net/argtable/argtable${ARGTABLE_VERSION}.tar.gz \
     && tar -ax --strip-components=1 -f argtable${ARGTABLE_VERSION}.tar.gz \
     && ./configure \
     && make \
