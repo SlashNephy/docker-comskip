@@ -1,42 +1,41 @@
-FROM alpine:3.16.2
-
-ARG ARGTABLE_VERSION=2-13
-RUN apk add --update --no-cache --virtual .build-deps \
-        build-base \
-        linux-headers \
-        autoconf \
-        automake \
-        libtool \
+FROM debian:bullseye-20220801-slim AS source
+ADD https://api.github.com/repos/erikkaashoek/Comskip/git/refs/heads/master /tmp/Comskip.json
+RUN apt-get update \
+    && apt-get full-upgrade -y \
+    && apt-get install -y --no-install-recommends \
         git \
-        ffmpeg-dev \
-        curl \
-        tar \
-    # Runtime
-    && apk add --no-cache \
-        ffmpeg \
-    \
-    # Build: argtable
-    && mkdir /tmp/argtable \
-    && cd /tmp/argtable \
-    && curl -sLO https://prdownloads.sourceforge.net/argtable/argtable${ARGTABLE_VERSION}.tar.gz \
-    && tar -ax --strip-components=1 -f argtable${ARGTABLE_VERSION}.tar.gz \
+        ca-certificates \
+    && git clone https://github.com/erikkaashoek/Comskip /app
+
+FROM debian:bullseye-20220801-slim AS build
+WORKDIR /app
+RUN apt-get update \
+    && apt-get full-upgrade -y \
+    && apt-get install -y --no-install-recommends \
+      autoconf \
+      automake \
+      libtool \
+      libargtable2-dev \
+      pkg-config \
+      libavutil-dev \
+      libavformat-dev \
+      libavcodec-dev \
+      libswscale-dev \
+      libsdl2-dev \
+      make
+COPY --from=source /app/ /app/
+RUN ./autogen.sh \
     && ./configure \
-    && make \
-    && make install \
-    \
-    # Build: Comskip
-    && cd /tmp \
-    && git clone https://github.com/erikkaashoek/Comskip \
-    && cd Comskip \
-    && ./autogen.sh \
-    && ./configure \
-    && make \
-    && make install \
-    \
-    # Clean
-    && apk del --purge .build-deps \
-    && rm -rf \
-        /tmp/argtable \
-        /tmp/Comskip
+    && make
+
+FROM debian:bullseye-20220801-slim AS runtime
+RUN apt-get update \
+    && apt-get full-upgrade -y \
+    && apt-get install -y --no-install-recommends \
+      libargtable2-0 \
+      ffmpeg \
+      libsdl2-2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=build /app/comskip /usr/local/bin/
 
 ENTRYPOINT ["/usr/local/bin/comskip"]
