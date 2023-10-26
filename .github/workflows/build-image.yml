@@ -2,15 +2,9 @@ name: 'Build Image'
 
 on:
   push:
-    paths-ignore:
-      - '**.md'
-    branches-ignore:
-      - 'renovate/**'
-
   release:
     types:
       - published
-
   workflow_dispatch:
 
 permissions:

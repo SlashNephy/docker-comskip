@@ -1,41 +1,27 @@
-FROM debian:bullseye-20220801-slim@sha256:a811e62769a642241b168ac34f615fb02da863307a14c4432cea8e5a0f9782b8 AS source
+# syntax=docker/dockerfile:1
+
+ARG DEPENDENCIES="autoconf automake libtool libargtable2-dev pkg-config libavutil-dev libavformat-dev libavcodec-dev libswscale-dev libsdl2-dev make"
+ARG RUNTIMES="libargtable2-0 ffmpeg libsdl2-2.0-0"
+
+FROM public.ecr.aws/bitnami/git:2.42.0 AS source
+
 ADD https://api.github.com/repos/erikkaashoek/Comskip/git/refs/heads/master /tmp/Comskip.json
-RUN apt-get update \
-    && apt-get full-upgrade -y \
-    && apt-get install -y --no-install-recommends \
-        git \
-        ca-certificates \
-    && git clone https://github.com/erikkaashoek/Comskip /app
+RUN git clone https://github.com/erikkaashoek/Comskip /app
 
-FROM debian:bullseye-20220801-slim@sha256:a811e62769a642241b168ac34f615fb02da863307a14c4432cea8e5a0f9782b8 AS build
+FROM public.ecr.aws/debian/debian:stable-slim AS build
 WORKDIR /app
-RUN apt-get update \
-    && apt-get full-upgrade -y \
-    && apt-get install -y --no-install-recommends \
-      autoconf \
-      automake \
-      libtool \
-      libargtable2-dev \
-      pkg-config \
-      libavutil-dev \
-      libavformat-dev \
-      libavcodec-dev \
-      libswscale-dev \
-      libsdl2-dev \
-      make
-COPY --from=source /app/ /app/
-RUN ./autogen.sh \
-    && ./configure \
-    && make
+ARG DEPENDENCIES
 
-FROM debian:bullseye-20220801-slim@sha256:a811e62769a642241b168ac34f615fb02da863307a14c4432cea8e5a0f9782b8 AS runtime
-RUN apt-get update \
-    && apt-get full-upgrade -y \
-    && apt-get install -y --no-install-recommends \
-      libargtable2-0 \
-      ffmpeg \
-      libsdl2-2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ${DEPENDENCIES}
+
+COPY --from=source /app/ ./
+RUN ./autogen.sh && ./configure && make
+
+FROM public.ecr.aws/debian/debian:stable-slim
+ARG RUNTIMES
+
+RUN apt-get update && apt-get install -y --no-install-recommends ${RUNTIMES} && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/comskip /usr/local/bin/
 
 ENTRYPOINT ["/usr/local/bin/comskip"]
