@@ -3,7 +3,7 @@
 ARG DEPENDENCIES="autoconf automake libtool libargtable2-dev pkg-config libavutil-dev libavformat-dev libavcodec-dev libswscale-dev libsdl2-dev make"
 ARG RUNTIMES="libargtable2-0 ffmpeg libsdl2-2.0-0"
 
-FROM public.ecr.aws/bitnami/git:2.51.0@sha256:1bb55b4e97f6eb03240d6897caf5657e9a2127329ceea7694bf29aff2f9898de AS source
+FROM public.ecr.aws/bitnami/git:2.51.1@sha256:decbda906d66665bdcd1a8a76c0afd8874f829d609f3e13a7dfe79460df817e3 AS source
 
 ADD https://api.github.com/repos/erikkaashoek/Comskip/git/refs/heads/master /tmp/Comskip.json
 RUN git clone https://github.com/erikkaashoek/Comskip /app
