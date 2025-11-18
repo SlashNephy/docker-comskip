@@ -8,7 +8,7 @@ FROM public.ecr.aws/bitnami/git:2.52.0@sha256:e84c1ac70c0c80da88cc5b8ac16cff735f
 ADD https://api.github.com/repos/erikkaashoek/Comskip/git/refs/heads/master /tmp/Comskip.json
 RUN git clone https://github.com/erikkaashoek/Comskip /app
 
-FROM public.ecr.aws/debian/debian:stable-slim@sha256:4dbc32d7e3138c7d1a9aff541e6e034a867a2c3fff9eed47a5caafe7c961a473 AS build
+FROM public.ecr.aws/debian/debian:stable-slim@sha256:6161f76cdd51a0e816cc5c059bc6d9fa27f18ff513087328a154d654e4de8daf AS build
 WORKDIR /app
 ARG DEPENDENCIES
 
@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ${DEPENDENCIES}
 COPY --from=source /app/ ./
 RUN ./autogen.sh && ./configure && make
 
-FROM public.ecr.aws/debian/debian:stable-slim@sha256:4dbc32d7e3138c7d1a9aff541e6e034a867a2c3fff9eed47a5caafe7c961a473
+FROM public.ecr.aws/debian/debian:stable-slim@sha256:6161f76cdd51a0e816cc5c059bc6d9fa27f18ff513087328a154d654e4de8daf
 ARG RUNTIMES
 
 RUN apt-get update && apt-get install -y --no-install-recommends ${RUNTIMES} && apt-get clean && rm -rf /var/lib/apt/lists/*
